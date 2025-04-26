@@ -135,7 +135,6 @@ function captureFace() {
     videoStream = null;
   }
 
-  // ✅ 自拍成功后，显示表单！
   document.getElementById('registerForm').style.display = 'flex';
   document.getElementById('status').innerText = "Face captured! Please fill in the form.";
 }
@@ -172,11 +171,15 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     body: JSON.stringify(registrationData)
   })
   .then(response => {
-    alert("Registration successfully sent!");
+    if (response.ok) {
+      alert("Registration successfully sent!");
+    } else {
+      alert("Failed to send registration. (server error)");
+    }
   })
   .catch(error => {
     console.error('Error sending registration:', error);
-    alert("Failed to send registration.");
+    alert("Failed to send registration. (connection error)");
   });
 });
 </script>
