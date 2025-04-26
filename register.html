@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>注册 - Astral Time</title>
+</head>
+<body>
+  <h2>注册新账号</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="密码"><br>
+  <button onclick="register()">注册</button>
+  <p id="msg" style="color:red;"></p>
+
+  <script>
+    function register() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) {
+        document.getElementById("msg").innerText = "请填写所有栏位";
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (users[email]) {
+        document.getElementById("msg").innerText = "此账号已存在";
+        return;
+      }
+      users[email] = { password: password, type: "new", bonus: 1000, lockedUntil: 0, loginAttempts: 0 };
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("注册成功，请登录！");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
