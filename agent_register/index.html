@@ -69,7 +69,7 @@ footer {
 <body>
 <div class="container">
 <h2>Astral Time Limited</h2>
-<h3>Agent Registration - Face Only</h3>
+<h3>Agent Registration - Face Verification Only</h3>
 
 <div class="video-container">
   <video id="video" autoplay playsinline style="display:none;"></video>
@@ -136,7 +136,7 @@ function captureFace() {
   }
 
   document.getElementById('registerForm').style.display = 'flex';
-  document.getElementById('status').innerText = "Face captured! Please fill the form.";
+  document.getElementById('status').innerText = "Face captured! Please fill in the form.";
 }
 
 // 提交表单
@@ -150,7 +150,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   const entryDate = document.getElementById('entryDate').value.trim();
 
   if (!faceImage) {
-    alert("Please capture your face photo!");
+    alert("Please capture your face photo first!");
     return;
   }
 
