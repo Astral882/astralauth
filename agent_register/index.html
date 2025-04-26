@@ -54,11 +54,6 @@ video {
 video.detected {
   border: 5px solid red;
 }
-.guide-text {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #333;
-}
 canvas { display: none; }
 p#status {
   margin-top: 20px;
@@ -82,9 +77,7 @@ footer {
   <video id="video" autoplay playsinline style="display:none;"></video>
 </div>
 
-<div class="guide-text" id="guide">请将脸部对准蓝色圆圈，保持光线充足！</div>
-
-<button onclick="startCamera('user')" id="startBtn">Start Camera</button>
+<button onclick="startCamera()" id="startBtn">Start Camera</button>
 <canvas id="canvas"></canvas>
 
 <button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
@@ -98,8 +91,8 @@ footer {
   <input type="text" id="country" placeholder="Country" required>
   <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
 
-  <button type="button" onclick="switchCameraToID('front')">Capture ID Front</button>
-  <button type="button" onclick="switchCameraToID('back')">Capture ID Back</button>
+  <button type="button" onclick="captureID('front')">Capture ID Front</button>
+  <button type="button" onclick="captureID('back')">Capture ID Back</button>
 
   <button type="submit">Submit Registration</button>
 </form>
@@ -108,38 +101,34 @@ footer {
 </div>
   <script>
 let videoStream = null;
-let currentFacingMode = "user"; // 默认前置相机
-let failCount = 0;
+let currentFacing = "user"; // 默认前置自拍
 let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
 let ipInfo = {};
 
-// 打开相机，选择前置/后置
-function startCamera(facing = "user") {
+// 启动摄像头
+function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
   const captureBtn = document.getElementById('captureBtn');
-  const guide = document.getElementById('guide');
 
   if (videoStream) {
     videoStream.getTracks().forEach(track => track.stop());
   }
 
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } }).then(stream => {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
     video.srcObject = stream;
     video.style.display = 'block';
     captureBtn.style.display = 'inline-block';
     startBtn.style.display = 'none';
     videoStream = stream;
-    currentFacingMode = facing;
-    detectFaceContinuously();
+    currentFacing = "user";
   }).catch(err => {
     alert("Camera access denied.");
   });
 
-  // 抓取IP地址和地理位置
-  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换your_ipinfo_token
+  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换 your_ipinfo_token
     .then(response => response.json())
     .then(data => {
       ipInfo = data;
@@ -149,44 +138,7 @@ function startCamera(facing = "user") {
     });
 }
 
-// 持续检测人脸（自拍阶段）
-function detectFaceContinuously() {
-  const video = document.getElementById('video');
-  const guide = document.getElementById('guide');
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-
-  if (!videoStream) return;
-
-  canvas.width = 360;
-  canvas.height = 360;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
-
-  fetch('https://api-us.faceplusplus.com/facepp/v3/detect', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${base64Image}`
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.faces && data.faces.length >= 1) {
-      video.classList.add('detected');
-      guide.innerText = "Face detected! You can capture now.";
-    } else {
-      video.classList.remove('detected');
-      guide.innerText = "请将脸部对准蓝色圆圈，保持光线充足！";
-    }
-  })
-  .catch(err => {
-    console.error("Detect face error", err);
-  });
-
-  setTimeout(detectFaceContinuously, 1500); // 每1.5秒检测一次
-}
-
-// 拍摄自拍
+// 拍脸并切换相机
 function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -196,29 +148,31 @@ function captureFace() {
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
-  document.getElementById('registerForm').style.display = 'flex';
-  document.getElementById('status').innerText = "Face captured. Please continue registration.";
+
+  stopCamera(); // 拍完脸，关闭前置相机
+
+  setTimeout(() => {
+    openBackCamera(); // 自动打开后置相机拍证件
+    document.getElementById('registerForm').style.display = 'flex';
+    document.getElementById('status').innerText = "Face captured! Now capture ID documents.";
+  }, 1000);
 }
 
-// 切换到后置相机拍身份证
-function switchCameraToID(side) {
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-  }
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-    const video = document.getElementById('video');
-    video.srcObject = stream;
-    videoStream = stream;
+// 打开后置镜头
+function openBackCamera() {
+  const video = document.getElementById('video');
 
-    setTimeout(() => {
-      captureID(side);
-    }, 1000); // 等1秒稳定后再拍
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+    video.srcObject = stream;
+    video.style.display = 'block';
+    videoStream = stream;
+    currentFacing = "environment";
   }).catch(err => {
     alert("Cannot access back camera.");
   });
 }
 
-// 拍身份证正面/背面
+// 拍身份证
 function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -237,6 +191,15 @@ function captureID(side) {
   }
 }
 
+// 停止相机
+function stopCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
+}
+
+// 提交注册表单
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
