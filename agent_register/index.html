@@ -59,13 +59,14 @@ footer {
   margin-top: 30px;
   font-size: 12px;
   color: gray;
+  text-align: center;
 }
 </style>
 </head>
 <body>
 <div class="container">
 <h2>Astral Time Limited</h2>
-<h3>Agent Registration - Face Verification</h3>
+<h3>Agent Registration - Face & ID Verification</h3>
 
 <button onclick="startCamera()" id="startBtn">Start Camera</button>
 <video id="video" style="display:none;" autoplay playsinline></video>
@@ -80,14 +81,20 @@ footer {
   <input type="tel" id="phone" placeholder="Phone Number" required>
   <input type="email" id="email" placeholder="Email Address" required>
   <input type="text" id="country" placeholder="Country" required>
+
+  <button type="button" onclick="captureID('front')">Capture ID Front</button>
+  <button type="button" onclick="captureID('back')">Capture ID Back</button>
+
   <button type="submit">Submit Registration</button>
 </form>
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-
 <script>
 let failCount = 0;
+let idFrontImage = '';
+let idBackImage = '';
+let faceImage = '';
 
 function startCamera() {
   const video = document.getElementById('video');
@@ -112,18 +119,18 @@ function captureFace() {
   canvas.height = 300;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+  faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
 
   fetch('https://api-us.faceplusplus.com/facepp/v3/detect', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${base64Image}`
+    body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${faceImage}`
   })
   .then(response => response.json())
   .then(data => {
     if (data.faces && data.faces.length === 1) {
       document.getElementById('registerForm').style.display = 'flex';
-      document.getElementById('status').innerText = "Face verification success! Please fill in your information.";
+      document.getElementById('status').innerText = "Face verification success! Please continue.";
     } else {
       failCount++;
       if (failCount >= 3) {
@@ -138,6 +145,42 @@ function captureFace() {
     document.getElementById('status').innerText = "Error verifying face.";
   });
 }
+
+function captureID(side) {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 300;
+  canvas.height = 300;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const image = canvas.toDataURL('image/jpeg').split(',')[1];
+  if (side === 'front') {
+    idFrontImage = image;
+    alert("Captured ID Front successfully!");
+  } else if (side === 'back') {
+    idBackImage = image;
+    alert("Captured ID Back successfully!");
+  }
+}
+
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const fullname = document.getElementById('fullname').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const country = document.getElementById('country').value.trim();
+
+  if (!idFrontImage || !idBackImage || !faceImage) {
+    alert("Please capture all required photos!");
+    return;
+  }
+
+  alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
+
+  // TODO: 这里可以加实际发Email流程 或 发送服务器存储
+});
 </script>
 </body>
 </html>
