@@ -1,16 +1,26 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Register</title></head>
-<body style="font-family:sans-serif;background:#f2f2f2;text-align:center;padding-top:50px;">
-<h2>Astral Time Limited</h2>
-<h3>Investor Registration</h3>
-<form>
-<input type="email" placeholder="Email"><br><br>
-<input type="password" placeholder="Password"><br><br>
-<button type="submit">Register</button>
-</form>
-<footer style="margin-top:100px;font-size:12px;color:gray;">
-Copyright © 2025 Astral Time Limited. All rights reserved.
-</footer>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Astral Time Limited</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+           display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .box { background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+    input, button { margin: 10px 0; padding: 10px; width: 90%; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #007bff; color: white; border: none; }
+    button:hover { background: #0056b3; }
+    footer { margin-top: 30px; font-size: 12px; color: gray; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <h2>Astral Time Limited</h2>
+  <h3>Investor Registration</h3>
+  <input type="email" placeholder="Email" required><br>
+  <input type="password" placeholder="Password" required><br>
+  <button>Register</button>
+  <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
+</div>
 </body>
 </html>
