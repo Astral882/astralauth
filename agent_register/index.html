@@ -1,12 +1,121 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agent Registration - Astral Time Limited</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+button, input {
+  margin-top: 15px;
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+}
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+}
+button:hover {
+  background: #0056b3;
+}
+.video-container {
+  position: relative;
+  margin-top: 20px;
+}
+video {
+  width: 380px;
+  height: 380px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 5px dashed #007bff;
+  transform: scaleX(-1);
+}
+video.detected {
+  border: 5px solid red;
+}
+canvas { display: none; }
+.notice {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+}
+p#status {
+  margin-top: 20px;
+  font-size: 14px;
+  color: red;
+}
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: gray;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Astral Time Limited</h2>
+<h3>Agent Registration - Face & ID Verification</h3>
+
+<div class="notice" id="guideText">请将脸部放入蓝色圈圈内，拍摄清晰。</div>
+
+<div class="video-container">
+  <video id="video" autoplay playsinline style="display:none;"></video>
+</div>
+
+<button onclick="startCamera()" id="startBtn">Start Camera</button>
+<canvas id="canvas"></canvas>
+
+<button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
+
+<p id="status"></p>
+
+<form id="registerForm" style="display:none;">
+  <input type="text" id="fullname" placeholder="Full Name" required>
+  <input type="tel" id="phone" placeholder="Phone Number" required>
+  <input type="email" id="email" placeholder="Email Address" required>
+  <input type="text" id="country" placeholder="Country" required>
+  <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
+
+  <button type="button" onclick="prepareCaptureID('front')">Capture ID Front</button>
+  <button type="button" onclick="prepareCaptureID('back')">Capture ID Back</button>
+
+  <button type="submit">Submit Registration</button>
+</form>
+
+<footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
+</div>
+  <script>
 let videoStream = null;
-let currentFacing = "user"; // 默认前置自拍
+let currentFacing = "user";
 let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
 let ipInfo = {};
 
-// 启动摄像头
+// 开启前置相机（拍自拍）
 function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
@@ -27,7 +136,7 @@ function startCamera() {
     alert("Camera access denied.");
   });
 
-  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换 your_ipinfo_token
+  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换成你的token
     .then(response => response.json())
     .then(data => {
       ipInfo = data;
@@ -37,33 +146,34 @@ function startCamera() {
     });
 }
 
-// 拍脸并切换相机
+// 自拍
 function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
-  canvas.width = 360;
-  canvas.height = 360;
+  canvas.width = 380;
+  canvas.height = 380;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
 
-  stopCamera(); // 拍完脸，关闭前置相机
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
 
   setTimeout(() => {
-    openBackCamera(); // 自动打开后置相机拍证件
+    openBackCamera(); // 切换后置相机拍身份证
     document.getElementById('registerForm').style.display = 'flex';
-    document.getElementById('status').innerText = "Face captured! Now capture ID documents.";
-  }, 1000);
+    document.getElementById('status').innerText = "Face captured! Please now capture your ID documents.";
+  }, 800);
 }
 
-// 打开后置镜头
+// 打开后置相机（拍身份证）
 function openBackCamera() {
-  const video = document.getElementById('video');
-
   navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+    const video = document.getElementById('video');
     video.srcObject = stream;
-    video.style.display = 'block';
     videoStream = stream;
     currentFacing = "environment";
   }).catch(err => {
@@ -71,13 +181,21 @@ function openBackCamera() {
   });
 }
 
-// 拍身份证
+// 延迟稳定后拍身份证
+function prepareCaptureID(side) {
+  document.getElementById('guideText').innerText = "请把身份证放入蓝圈，稳定好再点击拍照！";
+  setTimeout(() => {
+    captureID(side);
+  }, 1000); // 延迟1秒给相机对焦
+}
+
+// 真正捕捉身份证图
 function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
-  canvas.width = 360;
-  canvas.height = 360;
+  canvas.width = 380;
+  canvas.height = 380;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const image = canvas.toDataURL('image/jpeg').split(',')[1];
@@ -90,15 +208,7 @@ function captureID(side) {
   }
 }
 
-// 停止相机
-function stopCamera() {
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-    videoStream = null;
-  }
-}
-
-// 提交注册表单
+// 提交表单
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
