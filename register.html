@@ -1,83 +1,41 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>注册 - Astral Time</title>
+  <title>Register - Astral Time Limited</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Poppins", sans-serif;
-      height: 100vh;
-      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-    .form-container {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      text-align: center;
-      width: 300px;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    footer {
-      margin-top: 20px;
-      color: white;
-      font-size: 12px;
-    }
+    body { margin: 0; padding: 0; font-family: "Poppins", sans-serif; height: 100vh;
+           background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%); display: flex;
+           justify-content: center; align-items: center; flex-direction: column; }
+    .form-container { background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 12px;
+                      box-shadow: 0 8px 16px rgba(0,0,0,0.2); text-align: center; width: 300px; }
+    input, button { width: 90%; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    button { background: #007bff; color: white; border: none; font-size: 16px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    footer { margin-top: 20px; color: white; font-size: 12px; }
+    h1 { margin-bottom: 10px; }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h2>注册新账号</h2>
+    <h1>Astral Time Limited</h1>
+    <h2>Register New Account</h2>
     <input type="email" id="email" placeholder="Email"><br>
-    <input type="password" id="password" placeholder="密码"><br>
-    <button onclick="register()">注册</button>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="register()">Register</button>
     <p id="msg" style="color:red;"></p>
   </div>
-  <footer>
-    Copyright ©️ 2025 Astral Time Limited. All rights reserved.
-  </footer>
-
+  <footer>Copyright ©️ 2025 Astral Time Limited. All rights reserved.</footer>
   <script>
     function register() {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
-      if (!email || !password) {
-        document.getElementById("msg").innerText = "请填写所有栏位";
-        return;
-      }
+      if (!email || !password) { document.getElementById("msg").innerText = "Please fill in all fields."; return; }
       const users = JSON.parse(localStorage.getItem("users") || "{}");
-      if (users[email]) {
-        document.getElementById("msg").innerText = "此账号已存在";
-        return;
-      }
-      users[email] = { password: password, type: "new", bonus: 1000, lockedUntil: 0, loginAttempts: 0 };
+      if (users[email]) { document.getElementById("msg").innerText = "Account already exists."; return; }
+      users[email] = { password: password, type: "new", bonus: 1000 };
       localStorage.setItem("users", JSON.stringify(users));
-      alert("注册成功，请登录！");
+      alert("Registration successful! Please log in.");
       window.location.href = "login.html";
     }
   </script>
