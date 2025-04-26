@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>登录 - Astral Time</title>
+</head>
+<body>
+  <h2>登录账号</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="密码"><br>
+  <button onclick="login()">登录</button>
+  <p id="msg" style="color:red;"></p>
+
+  <script>
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      const now = Date.now();
+
+      if (!users[email]) {
+        document.getElementById("msg").innerText = "账号或密码错误";
+        return;
+      }
+
+      const user = users[email];
+
+      if (user.lockedUntil && now < user.lockedUntil) {
+        document.getElementById("msg").innerText = "此账号已锁定，请稍后再试";
+        return;
+      }
+
+      if (user.password !== password) {
+        user.loginAttempts = (user.loginAttempts || 0) + 1;
+        if (user.loginAttempts >= 3) {
+          user.lockedUntil = now + 10 * 60 * 1000; // 锁10分钟
+          user.loginAttempts = 0;
+        }
+        localStorage.setItem("users", JSON.stringify(users));
+        document.getElementById("msg").innerText = "账号或密码错误";
+        return;
+      }
+
+      user.loginAttempts = 0;
+      user.lockedUntil = 0;
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("loggedUser", email);
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+</html>
