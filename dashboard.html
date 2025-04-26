@@ -1,74 +1,21 @@
 <!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8">
-  <title>用户中心 - Astral Time</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Poppins", sans-serif;
-      height: 100vh;
-      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      text-align: center;
-    }
-    .dashboard {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1e7e34;
-    }
-    footer {
-      margin-top: 20px;
-      color: white;
-      font-size: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div class="dashboard">
-    <h2>欢迎，<span id="userEmail"></span></h2>
-    <p>用户类型：<span id="userType"></span></p>
-    <p>模拟红利：RM <span id="bonus"></span></p>
-    <button onclick="logout()">登出</button>
-  </div>
-  <footer>
-    Copyright ©️ 2025 Astral Time Limited. All rights reserved.
-  </footer>
-
-  <script>
-    const email = localStorage.getItem("loggedUser");
-    const users = JSON.parse(localStorage.getItem("users") || "{}");
-    if (!email || !users[email]) {
-      alert("请先登录");
-      window.location.href = "login.html";
-    } else {
-      document.getElementById("userEmail").innerText = email;
-      document.getElementById("userType").innerText = users[email].type === "old" ? "旧客户" : "新客户";
-      document.getElementById("bonus").innerText = users[email].bonus.toFixed(2);
-    }
-
-    function logout() {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "login.html";
-    }
-  </script>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Dashboard - Astral Time Limited</title></head>
+<body style="text-align:center;font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#74ebd5 0%,#ACB6E5 100%);">
+<h1>Welcome to Astral Time Limited</h1>
+<p>Hello, <span id="userEmail"></span></p>
+<p>Bonus: RM <span id="bonus"></span></p>
+<p><a href="bonus_index.html" target="_blank">Click here to view today's bonus index</a></p>
+<button onclick="logout()">Logout</button>
+<footer style="margin-top:20px;color:white;font-size:12px;">Copyright ©️ 2025 Astral Time Limited. All rights reserved.</footer>
+<script>
+const email = localStorage.getItem("loggedUser");
+const users = JSON.parse(localStorage.getItem("users") || "{}");
+if (!email || !users[email]) {
+alert("Please log in first."); window.location.href = "login.html"; } else {
+document.getElementById("userEmail").innerText = email;
+document.getElementById("bonus").innerText = users[email].bonus.toFixed(2); }
+function logout() { localStorage.removeItem("loggedUser"); window.location.href = "login.html"; }
+</script>
 </body>
 </html>
