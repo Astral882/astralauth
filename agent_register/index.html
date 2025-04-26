@@ -53,17 +53,6 @@ video {
   transform: scaleX(-1);
 }
 canvas { display: none; }
-.preview-container {
-  margin-top: 20px;
-  width: 90%;
-  text-align: center;
-}
-.preview-img {
-  width: 100%;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
 p#status {
   margin-top: 20px;
   font-size: 14px;
@@ -80,7 +69,7 @@ footer {
 <body>
 <div class="container">
 <h2>Astral Time Limited</h2>
-<h3>Agent Registration - Face & ID Verification</h3>
+<h3>Agent Registration - Face Only</h3>
 
 <div class="video-container">
   <video id="video" autoplay playsinline style="display:none;"></video>
@@ -99,15 +88,6 @@ footer {
   <input type="email" id="email" placeholder="Email Address" required>
   <input type="text" id="country" placeholder="Country" required>
   <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
-
-  <div class="preview-container">
-    <button type="button" onclick="captureID('front')">Capture ID Front</button>
-    <img id="previewFront" class="preview-img" src="" alt="ID Front Preview" style="display:none;">
-
-    <button type="button" onclick="captureID('back')">Capture ID Back</button>
-    <img id="previewBack" class="preview-img" src="" alt="ID Back Preview" style="display:none;">
-  </div>
-
   <button type="submit">Submit Registration</button>
 </form>
 
@@ -116,11 +96,9 @@ footer {
 
 <script>
 let videoStream = null;
-let idFrontImage = '';
-let idBackImage = '';
 let faceImage = '';
 
-// 打开前置相机
+// 开启前置相机
 function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
@@ -141,7 +119,7 @@ function startCamera() {
   });
 }
 
-// 拍自拍
+// 自拍
 function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -157,49 +135,11 @@ function captureFace() {
     videoStream = null;
   }
 
-  setTimeout(() => {
-    openBackCamera();
-    document.getElementById('registerForm').style.display = 'flex';
-    document.getElementById('status').innerText = "Face captured! Now capture your ID documents.";
-  }, 800);
+  document.getElementById('registerForm').style.display = 'flex';
+  document.getElementById('status').innerText = "Face captured! Please fill the form.";
 }
 
-// 打开后置相机
-function openBackCamera() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-    const video = document.getElementById('video');
-    video.srcObject = stream;
-    videoStream = stream;
-  }).catch(err => {
-    alert("Cannot access back camera.");
-  });
-}
-
-// 拍身份证
-function captureID(side) {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 380;
-  canvas.height = 380;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const imageData = canvas.toDataURL('image/jpeg');
-
-  if (side === 'front') {
-    idFrontImage = imageData.split(',')[1];
-    document.getElementById('previewFront').src = imageData;
-    document.getElementById('previewFront').style.display = 'block';
-    alert("Captured ID Front successfully!");
-  } else if (side === 'back') {
-    idBackImage = imageData.split(',')[1];
-    document.getElementById('previewBack').src = imageData;
-    document.getElementById('previewBack').style.display = 'block';
-    alert("Captured ID Back successfully!");
-  }
-}
-
-// 提交表单，发到Make.com Webhook
+// 提交表单
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
@@ -209,8 +149,8 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   const country = document.getElementById('country').value.trim();
   const entryDate = document.getElementById('entryDate').value.trim();
 
-  if (!idFrontImage || !idBackImage || !faceImage) {
-    alert("Please capture all required photos!");
+  if (!faceImage) {
+    alert("Please capture your face photo!");
     return;
   }
 
@@ -220,9 +160,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     email,
     country,
     entryDate,
-    faceImage,
-    idFrontImage,
-    idBackImage
+    faceImage
   };
 
   fetch('https://hook.us2.make.com/b8cblqur1hojn3vq1nzeunwxl4om2a', {
@@ -239,7 +177,6 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     console.error('Error sending registration:', error);
     alert("Failed to send registration.");
   });
-
 });
 </script>
 </body>
