@@ -1,25 +1,50 @@
+
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Login - Astral Time Limited</title></head>
-<body><h1 style="text-align:center;">Astral Time Limited</h1>
-<h2 style="text-align:center;">Login to Your Account</h2>
-<div style="text-align:center;">
-<input type="email" id="email" placeholder="Email"><br>
-<input type="password" id="password" placeholder="Password"><br>
-<button onclick="login()">Login</button>
-<p id="msg" style="color:red;"></p>
-</div>
-<footer style="text-align:center;margin-top:20px;font-size:12px;">Copyright ©️ 2025 Astral Time Limited. All rights reserved.</footer>
-<script>
-function login() {
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
-const users = JSON.parse(localStorage.getItem("users") || "{}");
-if (!users[email] || users[email].password !== password) {
-document.getElementById("msg").innerText = "Incorrect email or password."; return; }
-localStorage.setItem("loggedUser", email);
-window.location.href = "dashboard.html";
-}
-</script>
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Astral Time Limited</title>
+  <style>
+    body {
+      margin: 0; padding: 0; font-family: "Poppins", sans-serif;
+      height: 100vh; background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      display: flex; justify-content: center; align-items: center; flex-direction: column;
+    }
+    .form-container {
+      background: rgba(255,255,255,0.95); padding: 30px; border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2); text-align: center; width: 300px;
+    }
+    input, button {
+      width: 90%; padding: 10px; margin: 10px 0; border-radius: 8px;
+    }
+    button {
+      background: #007bff; color: white; border: none; font-size: 16px; cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    footer { margin-top: 20px; color: white; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Astral Time Limited</h2>
+    <h3>Login to Your Account</h3>
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="msg" style="color:red;"></p>
+  </div>
+  <footer>Copyright ©️ 2025 Astral Time Limited. All rights reserved.</footer>
+  <script>
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (!users[email] || users[email].password !== password) {
+        document.getElementById("msg").innerText = "Incorrect email or password."; return;
+      }
+      localStorage.setItem("loggedUser", email);
+      window.location.href = "dashboard.html";
+    }
+  </script>
 </body>
 </html>
