@@ -30,7 +30,7 @@ video {
   object-fit: cover;
   border-radius: 50%;
   border: 5px solid #007bff;
-  transform: scaleX(-1); /* 镜像自拍 */
+  transform: scaleX(-1);
 }
 canvas { display: none; }
 button {
@@ -53,78 +53,22 @@ footer {
 <body>
 <div class="container">
 <h2>Astral Time Limited</h2>
-<h3>Agent Registration - Document & Face Capture</h3>
+<h3>Agent Registration - Face & ID Capture</h3>
 
 <video id="video" autoplay playsinline></video><br>
 <canvas id="canvas"></canvas>
-
-<button onclick="capture('idFront')">Capture ID Front</button><br>
-<button onclick="capture('idBack')">Capture ID Back</button><br>
-<button onclick="capture('face')">Capture Face</button><br>
-
+<button onclick="captureFace()">Capture Face</button>
 <p id="status" style="color:red;margin-top:10px;"></p>
 
-<form id="agentForm" style="display:none;">
-<input type="text" id="fullname" placeholder="Full Name" required><br><br>
-<input type="tel" id="phone" placeholder="Phone Number" required><br><br>
-<input type="email" id="email" placeholder="Email Address" required><br><br>
-<input type="text" id="country" placeholder="Country" required><br><br>
-<button type="submit">Submit Registration</button>
+<form id="registerForm" style="display:none;">
+  <input type="text" id="fullname" placeholder="Full Name" required><br><br>
+  <input type="tel" id="phone" placeholder="Phone Number" required><br><br>
+  <input type="email" id="email" placeholder="Email Address" required><br><br>
+  <input type="text" id="country" placeholder="Country" required><br><br>
+  <button type="button" onclick="captureID('front')">Capture ID Front</button><br><br>
+  <button type="button" onclick="captureID('back')">Capture ID Back</button><br><br>
+  <button type="submit">Submit Registration</button>
 </form>
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-
-<script>
-let captureStep = '';
-let faceFailCount = 0;
-
-// 摄像头启动
-const video = document.getElementById('video');
-navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-  video.srcObject = stream;
-}).catch(err => {
-  alert("Camera not available.");
-});
-
-function capture(step) {
-  captureStep = step;
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 300;
-  canvas.height = 300;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  if (step === 'face') {
-    const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
-
-    fetch('https://api-us.faceplusplus.com/facepp/v3/detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${base64Image}`
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.faces && data.faces.length === 1) {
-        document.getElementById('agentForm').style.display = 'block';
-        document.getElementById('status').innerText = "Face verification success! Please fill your details.";
-      } else {
-        faceFailCount++;
-        if (faceFailCount >= 3) {
-          document.getElementById('status').innerText = "Face verification failed 3 times. Registration locked.";
-          document.querySelector('button').disabled = true;
-        } else {
-          document.getElementById('status').innerText = `Face verification failed. Try again (${faceFailCount}/3)`;
-        }
-      }
-    })
-    .catch(err => {
-      document.getElementById('status').innerText = "Error verifying face.";
-    });
-  } else {
-    document.getElementById('status').innerText = `Captured ${step}. Now proceed to next step.`;
-  }
-}
-</script>
-</body>
-</html>
