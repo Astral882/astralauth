@@ -48,55 +48,61 @@
   <div class="form-container">
     <h2>Astral Time Limited</h2>
     <h3>Withdrawal Request</h3>
-    <select id="type">
-      <option value="Bonus">Bonus</option>
-      <option value="Capital">Capital</option>
-    </select><br>
-    <input type="number" id="amount" placeholder="Amount (RM)"><br>
-    <input type="text" id="wallet" placeholder="USDT Wallet Address"><br>
-    <input type="email" id="email" placeholder="Your Email"><br>
-    <button onclick="submitWithdrawal()">Submit Request</button>
-    <p id="msg" style="color:red;"></p>
+    <form id="withdrawForm">
+      <select name="type">
+        <option value="Bonus">Bonus</option>
+        <option value="Capital">Capital</option>
+      </select><br>
+      <input type="number" name="amount" placeholder="Amount (RM)" required><br>
+      <input type="text" name="wallet" placeholder="USDT Wallet Address" required><br>
+      <input type="email" name="email" placeholder="Your Email" required><br>
+      <button type="submit">Submit Request</button>
+      <p id="msg" style="color:red;"></p>
+    </form>
   </div>
   <footer>Copyright ©️ 2025 Astral Time Limited. All rights reserved.</footer>
 
-<script>
-function submitWithdrawal() {
-  const type = document.getElementById('type').value;
-  const amount = parseFloat(document.getElementById('amount').value);
-  const wallet = document.getElementById('wallet').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const today = new Date();
-  const day = today.getDate();
+  <script>
+    document.getElementById("withdrawForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = {
+        type: form.type.value,
+        amount: form.amount.value,
+        wallet: form.wallet.value,
+        email: form.email.value
+      };
+      const today = new Date();
+      const day = today.getDate();
 
-  if (!wallet || !email || !amount) {
-    document.getElementById('msg').innerText = "Please fill in all fields.";
-    return;
-  }
+      if (formData.type === "Capital") {
+        if (!(day === 14 || day === 30)) {
+          document.getElementById("msg").innerText = "Capital withdrawals only allowed on 14th and 30th.";
+          return;
+        }
+        if (parseFloat(formData.amount) > 5000) {
+          document.getElementById("msg").innerText = "Maximum RM5000 allowed for capital withdrawals.";
+          return;
+        }
+      }
 
-  if (type === "Capital") {
-    if (!(day === 14 || day === 30)) {
-      document.getElementById('msg').innerText = "Capital withdrawals are only allowed on the 14th and 30th.";
-      return;
-    }
-    if (amount > 5000) {
-      document.getElementById('msg').innerText = "Capital withdrawal cannot exceed RM5000.";
-      return;
-    }
-  }
-
-  alert("Withdrawal request submitted successfully! A confirmation email will be sent to you.");
-
-  // 模拟发送电邮 (真实情况需服务器配合)
-  console.log(`Email to company: ${email}, ${amount}, ${wallet}, ${type}`);
-  console.log(`Email to investor: ${email}, withdrawal confirmation`);
-
-  // Redirect or clear form (这里简单清空)
-  document.getElementById('amount').value = '';
-  document.getElementById('wallet').value = '';
-  document.getElementById('email').value = '';
-  document.getElementById('type').value = 'Bonus';
-}
-</script>
+      fetch("https://hook.us2.make.com/b8cbqlur1hojn3vq1nzeunwx14om2a", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      }).then(res => {
+        if (res.ok) {
+          alert("Withdrawal request submitted successfully. Confirmation sent to your email.");
+          form.reset();
+        } else {
+          document.getElementById("msg").innerText = "Submission failed. Please try again.";
+        }
+      }).catch(err => {
+        document.getElementById("msg").innerText = "Error connecting to server.";
+      });
+    });
+  </script>
 </body>
 </html>
