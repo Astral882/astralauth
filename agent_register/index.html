@@ -119,9 +119,8 @@ let videoStream = null;
 let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
-let ipInfo = {};
 
-// 开启前置相机
+// 打开前置相机
 function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
@@ -142,7 +141,7 @@ function startCamera() {
   });
 }
 
-// 自拍
+// 拍自拍
 function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -159,7 +158,7 @@ function captureFace() {
   }
 
   setTimeout(() => {
-    openBackCamera(); // 切换后置相机拍身份证
+    openBackCamera();
     document.getElementById('registerForm').style.display = 'flex';
     document.getElementById('status').innerText = "Face captured! Now capture your ID documents.";
   }, 800);
@@ -176,7 +175,7 @@ function openBackCamera() {
   });
 }
 
-// 拍身份证正面或背面
+// 拍身份证
 function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -200,7 +199,7 @@ function captureID(side) {
   }
 }
 
-// 提交表单
+// 提交表单，发到Make.com Webhook
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
@@ -226,9 +225,21 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     idBackImage
   };
 
-  console.log("Registration Data Ready:", registrationData);
+  fetch('https://hook.us2.make.com/b8cblqur1hojn3vq1nzeunwxl4om2a', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(registrationData)
+  })
+  .then(response => {
+    alert("Registration successfully sent!");
+  })
+  .catch(error => {
+    console.error('Error sending registration:', error);
+    alert("Failed to send registration.");
+  });
 
-  alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
 });
 </script>
 </body>
