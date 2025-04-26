@@ -30,6 +30,7 @@ button, input {
   width: 90%;
   padding: 10px;
   border-radius: 5px;
+  font-size: 16px;
 }
 button {
   background: #007bff;
@@ -44,8 +45,8 @@ button:hover {
   margin-top: 20px;
 }
 video {
-  width: 380px;
-  height: 380px;
+  width: 360px;
+  height: 360px;
   object-fit: cover;
   border-radius: 50%;
   border: 5px dashed #007bff;
@@ -100,10 +101,10 @@ footer {
   <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
 
   <div class="preview-container">
-    <button type="button" onclick="prepareCaptureID('front')">Capture ID Front</button>
+    <button type="button" onclick="captureID('front')">Capture ID Front</button>
     <img id="previewFront" class="preview-img" src="" alt="ID Front Preview" style="display:none;">
-    
-    <button type="button" onclick="prepareCaptureID('back')">Capture ID Back</button>
+
+    <button type="button" onclick="captureID('back')">Capture ID Back</button>
     <img id="previewBack" class="preview-img" src="" alt="ID Back Preview" style="display:none;">
   </div>
 
@@ -112,143 +113,3 @@ footer {
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-<script>
-let videoStream = null;
-let idFrontImage = '';
-let idBackImage = '';
-let faceImage = '';
-let ipInfo = {};
-
-// 开启前置相机
-function startCamera() {
-  const video = document.getElementById('video');
-  const startBtn = document.getElementById('startBtn');
-  const captureBtn = document.getElementById('captureBtn');
-
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-  }
-
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
-    video.srcObject = stream;
-    video.style.display = 'block';
-    captureBtn.style.display = 'inline-block';
-    startBtn.style.display = 'none';
-    videoStream = stream;
-  }).catch(err => {
-    alert("Camera access denied.");
-  });
-
-  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换成你的token
-    .then(response => response.json())
-    .then(data => {
-      ipInfo = data;
-    })
-    .catch(err => {
-      console.error("IP info error", err);
-    });
-}
-
-// 自拍
-function captureFace() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 380;
-  canvas.height = 380;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
-
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-    videoStream = null;
-  }
-
-  setTimeout(() => {
-    openBackCamera(); // 切换后置相机拍身份证
-    document.getElementById('registerForm').style.display = 'flex';
-    document.getElementById('status').innerText = "Face captured! Now capture your ID documents.";
-  }, 800);
-}
-
-// 打开后置相机
-function openBackCamera() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-    const video = document.getElementById('video');
-    video.srcObject = stream;
-    videoStream = stream;
-  }).catch(err => {
-    alert("Cannot access back camera.");
-  });
-}
-
-// 预处理拍身份证，给时间对焦
-function prepareCaptureID(side) {
-  document.getElementById('status').innerText = "请将身份证放在蓝圈内，稳定后点击拍照。";
-  setTimeout(() => {
-    captureID(side);
-  }, 1000); // 延迟1秒
-}
-
-// 拍身份证正面/背面并显示预览
-function captureID(side) {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 380;
-  canvas.height = 380;
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const imageData = canvas.toDataURL('image/jpeg');
-
-  if (side === 'front') {
-    idFrontImage = imageData.split(',')[1];
-    document.getElementById('previewFront').src = imageData;
-    document.getElementById('previewFront').style.display = 'block';
-    alert("Captured ID Front successfully!");
-  } else if (side === 'back') {
-    idBackImage = imageData.split(',')[1];
-    document.getElementById('previewBack').src = imageData;
-    document.getElementById('previewBack').style.display = 'block';
-    alert("Captured ID Back successfully!");
-  }
-}
-
-// 提交表单
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-
-  const fullname = document.getElementById('fullname').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const country = document.getElementById('country').value.trim();
-  const entryDate = document.getElementById('entryDate').value.trim();
-
-  if (!idFrontImage || !idBackImage || !faceImage) {
-    alert("Please capture all required photos!");
-    return;
-  }
-
-  const registrationData = {
-    fullname,
-    phone,
-    email,
-    country,
-    entryDate,
-    ip: ipInfo.ip || '',
-    city: ipInfo.city || '',
-    region: ipInfo.region || '',
-    country_ip: ipInfo.country || '',
-    faceImage,
-    idFrontImage,
-    idBackImage
-  };
-
-  console.log("Registration Data Ready:", registrationData);
-
-  alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
-});
-</script>
-</body>
-</html>
