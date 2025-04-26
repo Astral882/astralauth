@@ -48,18 +48,11 @@ video {
   height: 360px;
   object-fit: cover;
   border-radius: 50%;
-  border: 5px solid #007bff;
+  border: 5px dashed #007bff; /* 默认蓝色虚线 */
   transform: scaleX(-1);
 }
-.guide-circle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 360px;
-  height: 360px;
-  border: 3px dashed #00aaff;
-  border-radius: 50%;
-  pointer-events: none;
+video.detected {
+  border: 5px solid red; /* 检测到人脸时变红色实线 */
 }
 .guide-text {
   margin-top: 10px;
@@ -87,10 +80,9 @@ footer {
 
 <div class="video-container">
   <video id="video" autoplay playsinline style="display:none;"></video>
-  <div class="guide-circle"></div>
 </div>
 
-<div class="guide-text">请将脸部放入蓝色圆圈中，保持光线充足！</div>
+<div class="guide-text" id="guide">请将脸部对准蓝色圆圈，保持光线充足！</div>
 
 <button onclick="startCamera()" id="startBtn">Start Camera</button>
 <canvas id="canvas"></canvas>
@@ -120,23 +112,27 @@ let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
 let ipInfo = {};
+let detecting = false;
 
 function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
   const captureBtn = document.getElementById('captureBtn');
+  const guide = document.getElementById('guide');
 
   navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
     video.srcObject = stream;
     video.style.display = 'block';
     captureBtn.style.display = 'inline-block';
     startBtn.style.display = 'none';
+    detecting = true;
+    detectFaceContinuously();
   }).catch(err => {
     alert("Camera access denied.");
   });
 
-  // 抓取IP地址和地理位置
-  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换 your_ipinfo_token
+  // 获取IP
+  fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换your_ipinfo_token
     .then(response => response.json())
     .then(data => {
       ipInfo = data;
@@ -146,7 +142,44 @@ function startCamera() {
     });
 }
 
+function detectFaceContinuously() {
+  const video = document.getElementById('video');
+  const guide = document.getElementById('guide');
+  const canvas = document.getElementById('canvas');
+  const context = canvas.getContext('2d');
+
+  if (!detecting) return;
+
+  canvas.width = 360;
+  canvas.height = 360;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+
+  fetch('https://api-us.faceplusplus.com/facepp/v3/detect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${base64Image}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.faces && data.faces.length >= 1) {
+      video.classList.add('detected');
+      guide.innerText = "Face detected! You can capture now.";
+    } else {
+      video.classList.remove('detected');
+      guide.innerText = "请将脸部对准蓝色圆圈，保持光线充足！";
+    }
+  })
+  .catch(err => {
+    console.error("Detect face error", err);
+  });
+
+  setTimeout(detectFaceContinuously, 1500); // 每1.5秒检测一次
+}
+
 function captureFace() {
+  detecting = false; // 停止持续检测
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
@@ -155,30 +188,8 @@ function captureFace() {
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   faceImage = canvas.toDataURL('image/jpeg').split(',')[1];
-
-  fetch('https://api-us.faceplusplus.com/facepp/v3/detect', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `api_key=V2E7Fw194WeXnY34Vf5caVjPVPSfDPU&api_secret=4air9mNevxtAVmcsgqfmURHNeNrhaQtl&image_base64=${faceImage}`
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.faces && data.faces.length >= 1) {
-      document.getElementById('registerForm').style.display = 'flex';
-      document.getElementById('status').innerText = "Face verification success! Please continue.";
-    } else {
-      failCount++;
-      if (failCount >= 3) {
-        document.getElementById('status').innerText = "Face verification failed 3 times. Registration locked.";
-        document.getElementById('captureBtn').disabled = true;
-      } else {
-        document.getElementById('status').innerText = `Face verification failed. Try again (${failCount}/3)`;
-      }
-    }
-  })
-  .catch(err => {
-    document.getElementById('status').innerText = "Error verifying face.";
-  });
+  document.getElementById('registerForm').style.display = 'flex';
+  document.getElementById('status').innerText = "Face captured. Please continue registration.";
 }
 
 function captureID(side) {
