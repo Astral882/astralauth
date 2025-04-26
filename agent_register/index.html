@@ -186,3 +186,94 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agent Registration - Astral Time Limited</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+button, input {
+  margin-top: 20px;
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+}
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+}
+button:hover {
+  background: #0056b3;
+}
+video {
+  margin-top: 20px;
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 5px solid #007bff;
+  transform: scaleX(-1);
+}
+canvas { display: none; }
+p#status {
+  margin-top: 20px;
+  font-size: 14px;
+  color: red;
+}
+footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: gray;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Astral Time Limited</h2>
+<h3>Agent Registration - Face & ID Verification</h3>
+
+<button onclick="startCamera()" id="startBtn">Start Camera</button>
+<video id="video" style="display:none;" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
+<button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
+
+<p id="status"></p>
+
+<form id="registerForm" style="display:none;">
+  <input type="text" id="fullname" placeholder="Full Name" required>
+  <input type="tel" id="phone" placeholder="Phone Number" required>
+  <input type="email" id="email" placeholder="Email Address" required>
+  <input type="text" id="country" placeholder="Country" required>
+
+  <button type="button" onclick="captureID('front')">Capture ID Front</button>
+  <button type="button" onclick="captureID('back')">Capture ID Back</button>
+
+  <button type="submit">Submit Registration</button>
+</form>
+
+<footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
+</div>
