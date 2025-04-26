@@ -48,11 +48,11 @@ video {
   height: 360px;
   object-fit: cover;
   border-radius: 50%;
-  border: 5px dashed #007bff; /* 默认蓝色虚线 */
+  border: 5px dashed #007bff;
   transform: scaleX(-1);
 }
 video.detected {
-  border: 5px solid red; /* 检测到人脸时变红色实线 */
+  border: 5px solid red;
 }
 .guide-text {
   margin-top: 10px;
@@ -84,7 +84,7 @@ footer {
 
 <div class="guide-text" id="guide">请将脸部对准蓝色圆圈，保持光线充足！</div>
 
-<button onclick="startCamera()" id="startBtn">Start Camera</button>
+<button onclick="startCamera('user')" id="startBtn">Start Camera</button>
 <canvas id="canvas"></canvas>
 
 <button onclick="captureFace()" id="captureBtn" style="display:none;">Capture Face</button>
@@ -98,40 +98,47 @@ footer {
   <input type="text" id="country" placeholder="Country" required>
   <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
 
-  <button type="button" onclick="captureID('front')">Capture ID Front</button>
-  <button type="button" onclick="captureID('back')">Capture ID Back</button>
+  <button type="button" onclick="switchCameraToID('front')">Capture ID Front</button>
+  <button type="button" onclick="switchCameraToID('back')">Capture ID Back</button>
 
   <button type="submit">Submit Registration</button>
 </form>
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-<script>
+  <script>
+let videoStream = null;
+let currentFacingMode = "user"; // 默认前置相机
 let failCount = 0;
 let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
 let ipInfo = {};
-let detecting = false;
 
-function startCamera() {
+// 打开相机，选择前置/后置
+function startCamera(facing = "user") {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
   const captureBtn = document.getElementById('captureBtn');
   const guide = document.getElementById('guide');
 
-  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } }).then(stream => {
     video.srcObject = stream;
     video.style.display = 'block';
     captureBtn.style.display = 'inline-block';
     startBtn.style.display = 'none';
-    detecting = true;
+    videoStream = stream;
+    currentFacingMode = facing;
     detectFaceContinuously();
   }).catch(err => {
     alert("Camera access denied.");
   });
 
-  // 获取IP
+  // 抓取IP地址和地理位置
   fetch('https://ipinfo.io?token=your_ipinfo_token') // 替换your_ipinfo_token
     .then(response => response.json())
     .then(data => {
@@ -142,13 +149,14 @@ function startCamera() {
     });
 }
 
+// 持续检测人脸（自拍阶段）
 function detectFaceContinuously() {
   const video = document.getElementById('video');
   const guide = document.getElementById('guide');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
 
-  if (!detecting) return;
+  if (!videoStream) return;
 
   canvas.width = 360;
   canvas.height = 360;
@@ -178,8 +186,8 @@ function detectFaceContinuously() {
   setTimeout(detectFaceContinuously, 1500); // 每1.5秒检测一次
 }
 
+// 拍摄自拍
 function captureFace() {
-  detecting = false; // 停止持续检测
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const context = canvas.getContext('2d');
@@ -192,6 +200,25 @@ function captureFace() {
   document.getElementById('status').innerText = "Face captured. Please continue registration.";
 }
 
+// 切换到后置相机拍身份证
+function switchCameraToID(side) {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+  }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    videoStream = stream;
+
+    setTimeout(() => {
+      captureID(side);
+    }, 1000); // 等1秒稳定后再拍
+  }).catch(err => {
+    alert("Cannot access back camera.");
+  });
+}
+
+// 拍身份证正面/背面
 function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -242,8 +269,6 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   console.log("Registration Data Ready:", registrationData);
 
   alert("Registration submitted!\n(Next Step: send data to server or email manually.)");
-
-  // TODO: 可以加Make.com发送资料，或保存到服务器
 });
 </script>
 </body>
