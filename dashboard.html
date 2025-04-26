@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>用户中心 - Astral Time</title>
+</head>
+<body>
+  <h2>欢迎，<span id="userEmail"></span></h2>
+  <p>用户类型：<span id="userType"></span></p>
+  <p>模拟红利：RM <span id="bonus"></span></p>
+  <button onclick="logout()">登出</button>
+
+  <script>
+    const email = localStorage.getItem("loggedUser");
+    const users = JSON.parse(localStorage.getItem("users") || "{}");
+    if (!email || !users[email]) {
+      alert("请先登录");
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("userEmail").innerText = email;
+      document.getElementById("userType").innerText = users[email].type === "old" ? "旧客户" : "新客户";
+      document.getElementById("bonus").innerText = users[email].bonus.toFixed(2);
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
