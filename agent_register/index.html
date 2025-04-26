@@ -51,15 +51,17 @@ video {
   border: 5px dashed #007bff;
   transform: scaleX(-1);
 }
-video.detected {
-  border: 5px solid red;
-}
 canvas { display: none; }
-.notice {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #333;
+.preview-container {
+  margin-top: 20px;
+  width: 90%;
   text-align: center;
+}
+.preview-img {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 p#status {
   margin-top: 20px;
@@ -79,8 +81,6 @@ footer {
 <h2>Astral Time Limited</h2>
 <h3>Agent Registration - Face & ID Verification</h3>
 
-<div class="notice" id="guideText">请将脸部放入蓝色圈圈内，拍摄清晰。</div>
-
 <div class="video-container">
   <video id="video" autoplay playsinline style="display:none;"></video>
 </div>
@@ -99,23 +99,27 @@ footer {
   <input type="text" id="country" placeholder="Country" required>
   <input type="text" id="entryDate" placeholder="Entry Date (YYYY-MM-DD)" required>
 
-  <button type="button" onclick="prepareCaptureID('front')">Capture ID Front</button>
-  <button type="button" onclick="prepareCaptureID('back')">Capture ID Back</button>
+  <div class="preview-container">
+    <button type="button" onclick="prepareCaptureID('front')">Capture ID Front</button>
+    <img id="previewFront" class="preview-img" src="" alt="ID Front Preview" style="display:none;">
+    
+    <button type="button" onclick="prepareCaptureID('back')">Capture ID Back</button>
+    <img id="previewBack" class="preview-img" src="" alt="ID Back Preview" style="display:none;">
+  </div>
 
   <button type="submit">Submit Registration</button>
 </form>
 
 <footer>Copyright © 2025 Astral Time Limited. All rights reserved.</footer>
 </div>
-  <script>
+<script>
 let videoStream = null;
-let currentFacing = "user";
 let idFrontImage = '';
 let idBackImage = '';
 let faceImage = '';
 let ipInfo = {};
 
-// 开启前置相机（拍自拍）
+// 开启前置相机
 function startCamera() {
   const video = document.getElementById('video');
   const startBtn = document.getElementById('startBtn');
@@ -131,7 +135,6 @@ function startCamera() {
     captureBtn.style.display = 'inline-block';
     startBtn.style.display = 'none';
     videoStream = stream;
-    currentFacing = "user";
   }).catch(err => {
     alert("Camera access denied.");
   });
@@ -165,31 +168,30 @@ function captureFace() {
   setTimeout(() => {
     openBackCamera(); // 切换后置相机拍身份证
     document.getElementById('registerForm').style.display = 'flex';
-    document.getElementById('status').innerText = "Face captured! Please now capture your ID documents.";
+    document.getElementById('status').innerText = "Face captured! Now capture your ID documents.";
   }, 800);
 }
 
-// 打开后置相机（拍身份证）
+// 打开后置相机
 function openBackCamera() {
   navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
     const video = document.getElementById('video');
     video.srcObject = stream;
     videoStream = stream;
-    currentFacing = "environment";
   }).catch(err => {
     alert("Cannot access back camera.");
   });
 }
 
-// 延迟稳定后拍身份证
+// 预处理拍身份证，给时间对焦
 function prepareCaptureID(side) {
-  document.getElementById('guideText').innerText = "请把身份证放入蓝圈，稳定好再点击拍照！";
+  document.getElementById('status').innerText = "请将身份证放在蓝圈内，稳定后点击拍照。";
   setTimeout(() => {
     captureID(side);
-  }, 1000); // 延迟1秒给相机对焦
+  }, 1000); // 延迟1秒
 }
 
-// 真正捕捉身份证图
+// 拍身份证正面/背面并显示预览
 function captureID(side) {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
@@ -198,12 +200,17 @@ function captureID(side) {
   canvas.height = 380;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const image = canvas.toDataURL('image/jpeg').split(',')[1];
+  const imageData = canvas.toDataURL('image/jpeg');
+
   if (side === 'front') {
-    idFrontImage = image;
+    idFrontImage = imageData.split(',')[1];
+    document.getElementById('previewFront').src = imageData;
+    document.getElementById('previewFront').style.display = 'block';
     alert("Captured ID Front successfully!");
   } else if (side === 'back') {
-    idBackImage = image;
+    idBackImage = imageData.split(',')[1];
+    document.getElementById('previewBack').src = imageData;
+    document.getElementById('previewBack').style.display = 'block';
     alert("Captured ID Back successfully!");
   }
 }
