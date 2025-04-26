@@ -82,7 +82,7 @@ footer {
 
 <p id="status"></p>
 
-<form id="registerForm" style="display:none;">
+<form id="registerForm" style="display:none; flex-direction: column; align-items: center;">
   <input type="text" id="fullname" placeholder="Full Name" required>
   <input type="tel" id="phone" placeholder="Phone Number" required>
   <input type="email" id="email" placeholder="Email Address" required>
@@ -135,6 +135,7 @@ function captureFace() {
     videoStream = null;
   }
 
+  // ✅ 自拍成功后，显示表单！
   document.getElementById('registerForm').style.display = 'flex';
   document.getElementById('status').innerText = "Face captured! Please fill in the form.";
 }
